@@ -92,38 +92,38 @@ fun ProjectScreen(
                 )
             } else Toast.makeText(context, "Type a project name", Toast.LENGTH_SHORT).show()
         }) { Text(text = "Create") }
-    }
 
-    LazyColumn {
-        items(projectList.value) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+        LazyColumn {
+            items(projectList.value) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                 ) {
-                    Text(text = it.projectName)
-                    Text(
-                        text = projectsViewModel.getFormattedTime(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 25.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    if (!projectsViewModel.getIsActive())
-                        Icon(
-                            imageVector = Icons.Default.Create,
-                            contentDescription = "Play",
-                            modifier = Modifier.clickable { projectsViewModel.start() }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = it.projectName)
+                        Text(
+                            text = projectsViewModel.getFormattedTime(),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 25.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
-                    else
-                        Icon(
-                            imageVector = Icons.Default.Done,
-                            contentDescription = "Pause",
-                            modifier = Modifier.clickable { projectsViewModel.pause() }
-                        )
+                        if (!projectsViewModel.getIsActive())
+                            Icon(
+                                imageVector = Icons.Default.Create,
+                                contentDescription = "Play",
+                                modifier = Modifier.clickable { projectsViewModel.start() }
+                            )
+                        else
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = "Pause",
+                                modifier = Modifier.clickable { projectsViewModel.pause() }
+                            )
+                    }
                 }
             }
         }

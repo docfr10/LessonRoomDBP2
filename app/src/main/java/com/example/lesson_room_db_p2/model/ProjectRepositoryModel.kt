@@ -14,4 +14,8 @@ class ProjectRepositoryModel(private val projectDAOModel: ProjectDAOModel) {
     fun setNewProjectName(projectModel: ProjectModel) {
         projectDAOModel.setNewProjectName(projectModel = projectModel)
     }
+
+    fun deleteProject(projectModel: ProjectModel) {
+        projectDAOModel.deleteProject(projectModel = projectModel)
+    }
 }

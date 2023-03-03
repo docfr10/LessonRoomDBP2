@@ -13,4 +13,7 @@ interface ProjectDAOModel {
 
     @Update
     fun setNewProjectName(projectModel: ProjectModel)
+
+    @Delete
+    fun deleteProject(projectModel: ProjectModel)
 }

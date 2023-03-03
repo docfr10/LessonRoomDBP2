@@ -104,7 +104,14 @@ fun ProjectScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = it.projectName)
+                        Text(text = it.projectName, Modifier.clickable {
+                            projectsViewModel.setNewProjectName(
+                                projectModel = ProjectModel(
+                                    id = it.id,
+                                    projectName = "New project name"
+                                )
+                            )
+                        })
                         Text(
                             text = projectsViewModel.getFormattedTime(),
                             fontWeight = FontWeight.Bold,

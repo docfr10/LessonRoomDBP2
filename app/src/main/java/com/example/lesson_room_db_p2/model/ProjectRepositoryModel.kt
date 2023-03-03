@@ -10,4 +10,8 @@ class ProjectRepositoryModel(private val projectDAOModel: ProjectDAOModel) {
     fun addProject(projectModel: ProjectModel) {
         projectDAOModel.addProject(projectModel = projectModel)
     }
+
+    fun setNewProjectName(projectModel: ProjectModel) {
+        projectDAOModel.setNewProjectName(projectModel = projectModel)
+    }
 }

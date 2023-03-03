@@ -42,6 +42,12 @@ class ProjectsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun deleteProject(projectModel: ProjectModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repositoryModel.deleteProject(projectModel = projectModel)
+        }
+    }
+
     private fun formatTime(timeMillis: Long): String {
         val seconds = timeMillis / 1000 % 60
         val minutes = timeMillis / 60000 % 60

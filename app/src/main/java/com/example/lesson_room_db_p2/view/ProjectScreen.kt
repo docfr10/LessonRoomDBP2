@@ -114,6 +114,9 @@ fun ProjectScreen(
                         })
                         Text(
                             text = projectsViewModel.getFormattedTime(),
+                            modifier = Modifier.clickable {
+                              projectsViewModel.deleteProject(it)
+                            },
                             fontWeight = FontWeight.Bold,
                             fontSize = 25.sp,
                             color = MaterialTheme.colorScheme.onBackground,

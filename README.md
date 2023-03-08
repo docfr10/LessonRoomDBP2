@@ -1,6 +1,6 @@
 # LessonRoomDBP2
 
-Урок по RoomDB №1
+Урок по RoomDB №2
 
 Полезные ссылки:
 

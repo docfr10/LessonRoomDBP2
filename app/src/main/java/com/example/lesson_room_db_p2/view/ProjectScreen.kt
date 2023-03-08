@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -28,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lesson_room_db_p2.model.ProjectModel
 import com.example.lesson_room_db_p2.viewModel.ProjectsViewModel
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,44 +98,68 @@ fun ProjectScreen(
 
         LazyColumn {
             items(projectList.value) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = it.projectName, Modifier.clickable {
-                            projectsViewModel.setNewProjectName(
-                                projectModel = ProjectModel(
-                                    id = it.id,
-                                    projectName = "New project name"
-                                )
+                val setNewProjectName = SwipeAction(
+                    onSwipe = {
+                        projectsViewModel.setNewProjectName(
+                            projectModel = ProjectModel(
+                                id = it.id,
+                                projectName = "New project name"
                             )
-                        })
-                        Text(
-                            text = projectsViewModel.getFormattedTime(),
-                            modifier = Modifier.clickable {
-                              projectsViewModel.deleteProject(it)
-                            },
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 25.sp,
-                            color = MaterialTheme.colorScheme.onBackground,
                         )
-                        if (!projectsViewModel.getIsActive())
-                            Icon(
-                                imageVector = Icons.Default.Create,
-                                contentDescription = "Play",
-                                modifier = Modifier.clickable { projectsViewModel.start() }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Create,
+                            contentDescription = "Set new project name"
+                        )
+                    },
+                    background = MaterialTheme.colorScheme.surface
+                )
+                val deleteProject = SwipeAction(
+                    onSwipe = { projectsViewModel.deleteProject(it) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete project"
+                        )
+                    },
+                    background = MaterialTheme.colorScheme.error
+                )
+
+                SwipeableActionsBox(
+                    swipeThreshold = 100.dp,
+                    startActions = listOf(setNewProjectName),
+                    endActions = listOf(deleteProject)
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = it.projectName)
+                            Text(
+                                text = projectsViewModel.getFormattedTime(),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 25.sp,
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
-                        else
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = "Pause",
-                                modifier = Modifier.clickable { projectsViewModel.pause() }
-                            )
+                            if (!projectsViewModel.getIsActive())
+                                Icon(
+                                    imageVector = Icons.Default.Create,
+                                    contentDescription = "Play",
+                                    modifier = Modifier.clickable { projectsViewModel.start() }
+                                )
+                            else
+                                Icon(
+                                    imageVector = Icons.Default.Done,
+                                    contentDescription = "Pause",
+                                    modifier = Modifier.clickable { projectsViewModel.pause() }
+                                )
+                        }
                     }
                 }
             }

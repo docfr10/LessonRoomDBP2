@@ -73,4 +73,7 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
     implementation "androidx.compose.runtime:runtime-livedata:1.3.0-rc01"
+
+    // Swipe elements
+    implementation "me.saket.swipe:swipe:1.1.1"
 }

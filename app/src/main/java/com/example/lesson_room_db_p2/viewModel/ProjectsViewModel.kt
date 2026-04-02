@@ -54,6 +54,22 @@ class ProjectsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun searchProjects(searchText: String): LiveData<List<ProjectModel>> {
+        return repositoryModel.searchProjects(searchText)
+    }
+
+    fun getProjectById(projectId: Int): LiveData<ProjectModel?> {
+        return repositoryModel.getProjectById(projectId)
+    }
+
+    fun sortProjectsByNameAsc(): LiveData<List<ProjectModel>> {
+        return repositoryModel.sortProjectsByNameAsc()
+    }
+
+    fun sortProjectsByNameDesc(): LiveData<List<ProjectModel>> {
+        return repositoryModel.sortProjectsByNameDesc()
+    }
+
     private fun formatTime(timeMillis: Long): String {
         val seconds = timeMillis / 1000 % 60
         val minutes = timeMillis / 60000 % 60

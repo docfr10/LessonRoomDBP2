@@ -7,10 +7,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,7 +23,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.Button
@@ -33,6 +39,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,6 +67,10 @@ fun ProjectScreen(
     projectsViewModel: ProjectsViewModel
 ) {
     val projectName = remember { mutableStateOf("") }
+    val searchText = remember { mutableStateOf("") }
+    val projectIdText = remember { mutableStateOf("") }
+    val currentMode = remember { mutableStateOf("all") }
+
     val bottomSheetScaffoldState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed
     )
@@ -67,17 +78,36 @@ fun ProjectScreen(
         rememberBottomSheetScaffoldState(bottomSheetState = bottomSheetScaffoldState)
     val scope = rememberCoroutineScope()
 
+    val searchedProjects =
+        projectsViewModel.searchProjects(searchText.value).observeAsState(initial = listOf())
+    val sortedProjectsAsc =
+        projectsViewModel.sortProjectsByNameAsc().observeAsState(initial = listOf())
+    val sortedProjectsDesc =
+        projectsViewModel.sortProjectsByNameDesc().observeAsState(initial = listOf())
+
+    val projectId = projectIdText.value.toIntOrNull() ?: -1
+    val foundProjectById =
+        projectsViewModel.getProjectById(projectId).observeAsState(initial = null)
+
+    val displayedProjects = when (currentMode.value) {
+        "search" -> searchedProjects.value
+        "sortAsc" -> sortedProjectsAsc.value
+        "sortDesc" -> sortedProjectsDesc.value
+        "byId" -> foundProjectById.value?.let { listOf(it) } ?: emptyList()
+        else -> projectList.value
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
             LazyColumn {
-                items(projectList.value) {
+                items(displayedProjects) { project ->
                     val setNewProjectName = SwipeAction(
                         onSwipe = {
                             projectsViewModel.setNewProjectName(
                                 projectModel = ProjectModel(
-                                    id = it.id,
+                                    id = project.id,
                                     projectName = "New project name"
                                 )
                             )
@@ -90,8 +120,9 @@ fun ProjectScreen(
                         },
                         background = MaterialTheme.colorScheme.surface
                     )
+
                     val deleteProject = SwipeAction(
-                        onSwipe = { projectsViewModel.deleteProject(it) },
+                        onSwipe = { projectsViewModel.deleteProject(project) },
                         icon = {
                             Icon(
                                 imageVector = Icons.Default.Delete,
@@ -107,58 +138,70 @@ fun ProjectScreen(
                         endActions = listOf(deleteProject)
                     ) {
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.Transparent
+                            )
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceAround,
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 10.dp)
                             ) {
-                                Text(text = it.projectName)
+                                Text(text = project.projectName)
+
                                 Text(
-                                    text = projectsViewModel.getFormattedTime(it.id),
+                                    text = projectsViewModel.getFormattedTime(project.id),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 25.sp,
                                     color = MaterialTheme.colorScheme.onBackground,
                                 )
-                                if (!projectsViewModel.getIsActive(it.id))
+
+                                if (!projectsViewModel.getIsActive(project.id)) {
                                     Icon(
-                                        imageVector = Icons.Default.Create,
+                                        imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Play",
-                                        modifier = Modifier.clickable { projectsViewModel.start(it.id) }
+                                        modifier = Modifier.clickable {
+                                            projectsViewModel.start(project.id)
+                                        }
                                     )
-                                else
+                                } else {
                                     Icon(
-                                        imageVector = Icons.Default.Done,
+                                        imageVector = Icons.Default.Pause,
                                         contentDescription = "Pause",
-                                        modifier = Modifier.clickable { projectsViewModel.pause(it.id) }
+                                        modifier = Modifier.clickable {
+                                            projectsViewModel.pause(project.id)
+                                        }
                                     )
+                                }
                             }
                         }
                     }
                 }
             }
-        }) {
+        }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp)
                 .background(MaterialTheme.colorScheme.background)
                 .imePadding(),
-            // Parameters set to place the items in center
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icon Composable
             Icon(
                 imageVector = Icons.Default.Create,
                 contentDescription = "newNotification",
                 tint = MaterialTheme.colorScheme.surfaceTint
             )
-            // Text to Display the current Screen
+
             Text(text = "Create new project")
-            // OutlinedTextField to type the new project name
+
             OutlinedTextField(
                 value = projectName.value,
                 isError = projectName.value.isEmpty(),
@@ -168,12 +211,12 @@ fun ProjectScreen(
                 label = { Text(text = "Type a project name") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text, // Keyboard type
-                    capitalization = KeyboardCapitalization.Sentences, // Letters type
-                    imeAction = ImeAction.Done // Keyboard action type
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done
                 )
             )
-            // Displaying information about required field
+
             if (projectName.value.isEmpty()) {
                 Text(
                     text = "Required field",
@@ -182,26 +225,156 @@ fun ProjectScreen(
                     modifier = Modifier.padding(end = 235.dp)
                 )
             }
-            // Button, to create project
-            Button(onClick = {
-                // Check the notification text for emptiness
-                if (projectName.value.isNotEmpty()) {
-                    projectsViewModel.addProject(
-                        projectModel = ProjectModel(
-                            0,
-                            projectName = projectName.value
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Button(
+                onClick = {
+                    if (projectName.value.isNotEmpty()) {
+                        projectsViewModel.addProject(
+                            projectModel = ProjectModel(
+                                0,
+                                projectName = projectName.value
+                            )
                         )
-                    )
-                } else Toast.makeText(context, "Type a project name", Toast.LENGTH_SHORT).show()
-            }) { Text(text = "Create") }
-            // Button to open BottomSheetScaffold
-            Button(onClick = {
-                scope.launch {
-                    if (bottomSheetScaffoldState.isCollapsed)
-                        bottomSheetScaffoldState.expand()
-                    else bottomSheetScaffoldState.collapse()
+                        projectName.value = ""
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Type a project name",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-            }) { Text(text = "Open projects") }
+            ) {
+                Text(text = "Create")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Search and selection",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = searchText.value,
+                onValueChange = { searchText.value = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Search by project name") },
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search"
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        currentMode.value = "search"
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Search")
+                }
+
+                Button(
+                    onClick = {
+                        searchText.value = ""
+                        projectIdText.value = ""
+                        currentMode.value = "all"
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Reset")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = projectIdText.value,
+                onValueChange = { projectIdText.value = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Find project by id") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    if (projectIdText.value.toIntOrNull() != null) {
+                        currentMode.value = "byId"
+                    } else {
+                        Toast.makeText(context, "Enter valid id", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Find by id")
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { currentMode.value = "sortAsc" },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SortByAlpha,
+                        contentDescription = "Sort asc"
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("A-Z")
+                }
+
+                Button(
+                    onClick = { currentMode.value = "sortDesc" },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SortByAlpha,
+                        contentDescription = "Sort desc"
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Z-A")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        if (bottomSheetScaffoldState.isCollapsed)
+                            bottomSheetScaffoldState.expand()
+                        else
+                            bottomSheetScaffoldState.collapse()
+                    }
+                }
+            ) {
+                Text(text = "Open projects")
+            }
         }
     }
 }

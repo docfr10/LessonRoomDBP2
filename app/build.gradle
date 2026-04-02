@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.example.lesson_room_db_p2'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.lesson_room_db_p2"
         minSdk 21
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -76,4 +76,7 @@ dependencies {
 
     // Swipe elements
     implementation "me.saket.swipe:swipe:1.1.1"
+
+    // More icons
+    implementation "androidx.compose.material:material-icons-extended:1.7.8"
 }
